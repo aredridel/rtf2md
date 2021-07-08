@@ -27,9 +27,7 @@ module.exports = async function rtf2md(text) {
       }
 
       for (const span of node.content) {
-        if (span.value.includes("<$Scr_Ps::0>")) {
-          span.value = span.value.replace("<$Scr_Ps::0>", "");
-        }
+        span.value = span.value.replace(/<[$]Scr[^>]+>/g, "");
       }
 
       let scrivStart = inScrivenerAnnotation
