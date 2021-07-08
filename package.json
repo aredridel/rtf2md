@@ -7,8 +7,12 @@
   "author": "Aria Stewart <aredridel@dinhe.net>",
   "license": "ISC",
   "type": "commonjs",
+  "scripts": {
+    "postinstall": "patch-package"
+  },
   "dependencies": {
     "mdast-util-to-markdown": "^0.6.5",
+    "patch-package": "^6.4.7",
     "rtf-parser": "^1.3.3"
   },
   "eslintConfig": {
