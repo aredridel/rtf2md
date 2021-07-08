@@ -1,5 +1,5 @@
 const rtf = require("rtf-parser");
-const util = require('util');
+const util = require("util");
 const parseRTF = util.promisify(rtf.string);
 
 module.exports = async function rtf2md(text) {
@@ -8,24 +8,43 @@ module.exports = async function rtf2md(text) {
   let out = [];
 
   let inScrivenerAnnotation = false;
+
+  let pendingFreeSpans = [];
   for (const node of rtf.content) {
     if (node.constructor.name == "RTFSpan") {
-      out.push({ type: "paragraph", children: [span2md(node)] });
+      pendingFreeSpans.push(node);
     } else {
-      if (
-        node.content.every((span) => span.value.trim() == "")
-      ) {
+      if (pendingFreeSpans.length) {
+        out.push({
+          type: "paragraph",
+          children: pendingFreeSpans.map(span2md),
+        });
+        pendingFreeSpans = [];
+      }
+      if (node.content.every((span) => span.value.trim() == "")) {
         out.push({ type: "thematicBreak" });
         continue;
       }
 
-      let scrivStart = inScrivenerAnnotation ? 0 : node.content.findIndex(span => span.value.includes('{\\Scrv_annot'));
+      for (const span of node.content) {
+        if (span.value.includes("<$Scr_Ps::0>")) {
+          span.value = span.value.replace("<$Scr_Ps::0>", "");
+        }
+      }
+
+      let scrivStart = inScrivenerAnnotation
+        ? 0
+        : node.content.findIndex((span) =>
+            span.value.includes("{\\Scrv_annot")
+          );
       if (scrivStart != -1) {
         inScrivenerAnnotation = true;
       }
 
       if (inScrivenerAnnotation) {
-        let scrivEnd = node.content.findIndex(span => span.value.includes('\\end_Scrv_annot}'));
+        let scrivEnd = node.content.findIndex((span) =>
+          span.value.includes("\\end_Scrv_annot}")
+        );
         if (scrivEnd == -1) {
           scrivEnd = node.content.length;
         } else {
@@ -51,6 +70,13 @@ module.exports = async function rtf2md(text) {
         });
       }
     }
+  }
+
+  if (pendingFreeSpans.length) {
+    out.push({
+      type: "paragraph",
+      children: pendingFreeSpans.map(span2md),
+    });
   }
 
   return { type: "root", children: out };
