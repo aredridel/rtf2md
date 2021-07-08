@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const rtf2md = require("./index");
 const mdast2md = require("mdast-util-to-markdown");
 
