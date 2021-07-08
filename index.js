@@ -54,19 +54,19 @@ module.exports = async function rtf2md(text) {
 
       if (!node.content.length) continue;
 
-      if (node.style && node.style.fontSize > rtf.style.fontSize) {
-        out.push({
-          type: "heading",
-          depth: 1,
-          children: node.content.map(span2md),
-        });
-      } else {
-        out.push({
-          type: "paragraph",
-          depth: 1,
-          children: node.content.map(span2md),
-        });
-      }
+      out.push(
+        Object.assign(
+          rtf.style.fontSize && node.style.fontSize > rtf.style.fontSize
+            ? {
+                type: "heading",
+                depth: 1,
+              }
+            : { type: "paragraph" },
+          {
+            children: node.content.map(span2md),
+          }
+        )
+      );
     }
   }
 
@@ -82,20 +82,22 @@ module.exports = async function rtf2md(text) {
 
 function span2md(span) {
   let nesting = [];
-  if (span.italic || span.underline) {
-    nesting.push("emphasis");
-  }
-  if (span.bold) {
-    nesting.push("strong");
-  }
-  if (span.strikethrough) {
-    nesting.push("delete");
+  if (span.value) {
+    if (span.style.italic || span.style.underline) {
+      nesting.push("emphasis");
+    }
+    if (span.style.bold) {
+      nesting.push("strong");
+    }
+    if (span.style.strikethrough) {
+      nesting.push("delete");
+    }
   }
 
   let node = { type: "text", value: span.value };
 
   for (const t of nesting) {
-    node = { type: t, children: node };
+    node = { type: t, children: [node] };
   }
 
   return node;
