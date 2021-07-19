@@ -56,7 +56,7 @@ module.exports = async function rtf2md(text) {
 
       out.push(
         Object.assign(
-          rtf.style.fontSize && node.style.fontSize > rtf.style.fontSize
+          rtf.style.fontSize && node.style.fontSize - rtf.style.fontSize > 8
             ? {
                 type: "heading",
                 depth: 1,
