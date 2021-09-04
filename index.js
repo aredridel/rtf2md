@@ -12,6 +12,7 @@ module.exports = async function rtf2md(text) {
   let pendingFreeSpans = [];
   for (const node of rtf.content) {
     if (node.constructor.name == "RTFSpan") {
+      node.value = node.value.replace(/<!?[$]Scr[^>]+>/g, "");
       pendingFreeSpans.push(node);
     } else {
       if (pendingFreeSpans.length) {
